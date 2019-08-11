@@ -1,13 +1,21 @@
 #' @export
-bootcurve = function(data, statistic, B = 2000){
+bootcurve = function(data, statistic, B = 2000, formula = NULL){
   if (length(B) > 1){
-    t0 = statistic(data, 1:nrow(data))
+    if (is.null(formula)){
+      t0 = statistic(data, 1:nrow(data))
+    }else{
+      t0 = statistic(formula, data, 1:nrow(data))
+    }
 
     boot.out = list(t0 = t0, t = B)
 
     B = nrow(B)
   }else{
-    boot.out = boot(data = data, statistic = statistic, R = B)
+    if (is.null(formula)){
+      boot.out = boot(data = data, statistic = statistic, R = B)
+    }else{
+      boot.out = boot(data = data, statistic = statistic, R = B, formula = formula)
+    }
   }
 
   p = length(boot.out$t0) # Dimension of the parameter vector
@@ -34,7 +42,12 @@ bootcurve = function(data, statistic, B = 2000){
   n1 <- sqrt(n * (n - 1))
 
   for (i in seq_len(n)) {
-    u[i, ] <- statistic(data[-i, ], seq_len(n-1))
+    if (is.null(formula)){
+      u[i, ] <- statistic(data[-i, ], seq_len(n-1))
+    }else{
+      u[i, ] <- statistic(formula, data[-i, ], seq_len(n-1))
+    }
+
   }
   t. <- sweep(-u, 2, colMeans(u), "+") * (n - 1)
   a <- (1 / 6) * colSums(t.^3) / (colSums(t.^2))^1.5
@@ -138,6 +151,41 @@ confcurve = function(bc, conf.level, param){
   cc.u = quantile(x = bc$t[, param], probs = Ps.r)
 
   return(list(cc.l = cc.l, cc.u = cc.u, conf.level = conf.level))
+}
+
+#' @export
+plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, xlim = NULL, add = FALSE){
+  if(class(object) == 'lm'){
+    confcurve.out = confcurve.lm(object = object, conf.level = cs, param = param)
+    ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
+    xlab = names(object$coefficients)[param]
+  }else{
+    confcurve.out = confcurve(bc = object, conf.level = cs, param = param)
+    ci = confcurve(bc = bootcurve.out, conf.level = conf.level, param = param)
+    xlab = names(object$t0)[param]
+  }
+
+  if (is.null(xlim)){
+    xlim = range(confcurve.out$cc.l, confcurve.out$cc.u)
+  }
+
+  if (add){
+    lines(confcurve.out$cc.l, confcurve.out$conf.level, type = 'l', xlim = xlim)
+  }else{
+    plot(confcurve.out$cc.l, confcurve.out$conf.level, type = 'l', xlim = xlim, ylab = 'Confidence Level', xlab = xlab)
+  }
+
+  lines(confcurve.out$cc.u, confcurve.out$conf.level, type = 'l')
+
+  segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2)
+
+  if(class(object) == 'lm'){
+    points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2)
+  }else{
+    points(x = bootcurve.out$t0[param], y = conf.level, pch = 16, cex = 2)
+  }
+
+  # return(list(confcurve = confcurve.out, ci = ci))
 }
 
 #' @export
