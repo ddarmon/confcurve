@@ -1,0 +1,12 @@
+Package: confcurve
+Type: Package
+Title: Simple implementation of confidence curves using analytical and bootstrap sampling distributions.
+Version: 0.1.0
+Author: David Darmon
+Maintainer: David Darmon <ddarmon@monmouth.edu>
+Description: 
+Depends:
+    boot (>= 1.3.0)
+License: GNU
+Encoding: UTF-8
+LazyData: true
