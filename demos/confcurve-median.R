@@ -1,6 +1,6 @@
 library(confcurve)
 
-n = 20
+n = 25
 
 B = 2000
 
