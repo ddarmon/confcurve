@@ -101,7 +101,7 @@ confdens = function(bc, param){
 }
 
 #' @export
-confpvalue = function(bc, theta, param){
+confpvalue = function(bc, theta, param = 1){
 
   # A modification that prevents NAN P-values:
 
@@ -127,7 +127,7 @@ confpvalue = function(bc, theta, param){
     # The BCa confidence distribution
     Hn = pnorm((Phi.invs - bc$z0[param])/(1 + bc$a[param]*(Phi.invs - bc$z0[param])) - bc$z0[param])
 
-    return(Hn)
+    return(2*min(Hn, 1 - Hn))
   }
 
 }
