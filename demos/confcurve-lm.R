@@ -1,5 +1,7 @@
 library(confcurve)
 
+par(mar=c(5,5,2,1), cex.lab = 2, cex.axis = 2)
+
 n = 100
 
 B = 2000
@@ -70,7 +72,7 @@ for(param in 1:(p+1)){
 
 bootcurve.out = bootcurve(cars, statistic, B = B, formula = dist ~ speed)
 
-par(mfrow = c(2, 1), mar=c(5,5,2,1), cex.lab = 2, cex.axis = 2)
+par(mfrow = c(2, 1))
 for (param in 1:2){
   confcurve.out = confcurve(bc = bootcurve.out, conf.level = cs, param = param)
 

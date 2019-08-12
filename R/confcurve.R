@@ -154,7 +154,7 @@ confcurve = function(bc, conf.level, param){
 }
 
 #' @export
-plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, xlim = NULL, add = FALSE){
+plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, col = 'black', xlim = NULL, add = FALSE){
   if(class(object) == 'lm'){
     confcurve.out = confcurve.lm(object = object, conf.level = cs, param = param)
     ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
@@ -170,19 +170,19 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
   }
 
   if (add){
-    lines(confcurve.out$cc.l, confcurve.out$conf.level, type = 'l', xlim = xlim)
+    lines(confcurve.out$cc.l, confcurve.out$conf.level, type = 'l', xlim = xlim, col = col)
   }else{
-    plot(confcurve.out$cc.l, confcurve.out$conf.level, type = 'l', xlim = xlim, ylab = 'Confidence Level', xlab = xlab)
+    plot(confcurve.out$cc.l, confcurve.out$conf.level, type = 'l', xlim = xlim, ylab = 'Confidence Level', xlab = xlab, col = col)
   }
 
-  lines(confcurve.out$cc.u, confcurve.out$conf.level, type = 'l')
+  lines(confcurve.out$cc.u, confcurve.out$conf.level, type = 'l', col = col)
 
-  segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2)
+  segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2, col = col)
 
   if(class(object) == 'lm'){
-    points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2)
+    points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2, col = col)
   }else{
-    points(x = bootcurve.out$t0[param], y = conf.level, pch = 16, cex = 2)
+    points(x = bootcurve.out$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
   }
 
   # return(list(confcurve = confcurve.out, ci = ci))
