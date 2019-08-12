@@ -154,7 +154,7 @@ confcurve = function(bc, conf.level, param){
 }
 
 #' @export
-plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, col = 'black', xlim = NULL, add = FALSE){
+plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, col = 'black', xlim = NULL, xlab = NULL, add = FALSE){
   if(class(object) == 'lm'){
     confcurve.out = confcurve.lm(object = object, conf.level = cs, param = param)
     ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
@@ -163,6 +163,10 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
     confcurve.out = confcurve(bc = object, conf.level = cs, param = param)
     ci = confcurve(bc = bootcurve.out, conf.level = conf.level, param = param)
     xlab = names(object$t0)[param]
+  }
+
+  if(is.null(xlab)){
+    xlab = 'Parameter'
   }
 
   if (is.null(xlim)){

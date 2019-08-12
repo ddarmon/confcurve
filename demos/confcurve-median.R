@@ -1,5 +1,4 @@
-# library(confcurve)
-source('/Users/daviddarmon/Documents/Reference/G/github/confcurve/R/confcurve.R')
+library(confcurve)
 
 n = 20
 
@@ -27,7 +26,7 @@ statistic = function(x, d){
 
 # For mean
 theta0 = 0
-thetaa = -0.5
+thetaa = -0.1
 
 thetas = seq(-1, 1, by = 0.01)
 cs = seq(0.001, 0.999, by = 0.001)
@@ -37,10 +36,8 @@ x = 2*(runif(n)-0.5) + thetaa
 # For sd:
 # theta0 = 1
 # thetaa = 1.25
-
+#
 # x = thetaa*rnorm(n) + thetaa
-
-# boot.out = boot(data = x, statistic = statistic, R = B)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #
