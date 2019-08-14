@@ -157,11 +157,35 @@ confcurve = function(bc, conf.level, param){
 plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, col = 'black', xlim = NULL, xlab = NULL, add = FALSE){
   if(class(object) == 'lm'){
     confcurve.out = confcurve.lm(object = object, conf.level = cs, param = param)
-    ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
+
+    if (length(conf.level) == 1){
+      ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
+    }else{
+      ci = list()
+
+      for (cl.ind in 1:length(conf.level)){
+        cl = conf.level[cl.ind]
+        ci[[cl.ind]] = confcurve.lm(object = object, conf.level = cl, param = param)
+      }
+    }
+
     if(is.null(xlab)) xlab = names(object$coefficients)[param]
   }else{
     confcurve.out = confcurve(bc = object, conf.level = cs, param = param)
     ci = confcurve(bc = bootcurve.out, conf.level = conf.level, param = param)
+
+    if (length(conf.level) == 1){
+      ci = confcurve(object = object, conf.level = conf.level, param = param)
+    }else{
+      ci = list()
+
+      for (cl.ind in 1:length(conf.level)){
+        cl = conf.level[cl.ind]
+
+        ci[[cl.ind]] = confcurve(object = object, conf.level = cl, param = param)
+      }
+    }
+
     if(is.null(xlab)) xlab = names(object$t0)[param]
   }
 
@@ -181,12 +205,27 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
 
   lines(confcurve.out$cc.u, confcurve.out$conf.level, type = 'l', col = col)
 
-  segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2, col = col)
+  if (length(conf.level) == 1){
+    segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2, col = col)
 
-  if(class(object) == 'lm'){
-    points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2, col = col)
+    if(class(object) == 'lm'){
+      points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2, col = col)
+    }else{
+      points(x = bootcurve.out$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
+    }
   }else{
-    points(x = bootcurve.out$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
+    for (cl.ind in 1:length(conf.level)){
+      cl = conf.level[cl.ind]
+      ci.cur = ci[[cl.ind]]
+
+      segments(x0 = ci.cur$cc.l, x1 = ci.cur$cc.u, y0 = cl, lwd = 2, col = col)
+
+      if(class(object) == 'lm'){
+        points(x = object$coefficients[param], y = cl, pch = 16, cex = 2, col = col)
+      }else{
+        points(x = bootcurve.out$t0[param], y = cl, pch = 16, cex = 2, col = col)
+      }
+    }
   }
 
   # return(list(confcurve = confcurve.out, ci = ci))

@@ -105,6 +105,10 @@ cat('\n\n')
 
 lm.out = lm(weight ~ feed, chickwts)
 
+res.aov = aov(weight ~ feed, chickwts)
+
+summary(res.aov)
+
 show(cbind(summary(lm.out)$coefficients[, 1]))
 
 for(param in 1:6){
