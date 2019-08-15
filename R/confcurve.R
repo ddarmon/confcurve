@@ -175,14 +175,14 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
     ci = confcurve(bc = object, conf.level = conf.level, param = param)
 
     if (length(conf.level) == 1){
-      ci = confcurve(object = object, conf.level = conf.level, param = param)
+      ci = confcurve(bc = object, conf.level = conf.level, param = param)
     }else{
       ci = list()
 
       for (cl.ind in 1:length(conf.level)){
         cl = conf.level[cl.ind]
 
-        ci[[cl.ind]] = confcurve(object = object, conf.level = cl, param = param)
+        ci[[cl.ind]] = confcurve(bc = object, conf.level = cl, param = param)
       }
     }
 
