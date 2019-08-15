@@ -211,7 +211,7 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
     if(class(object) == 'lm'){
       points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2, col = col)
     }else{
-      points(x = bootcurve.out$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
+      points(x = object$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
     }
   }else{
     for (cl.ind in 1:length(conf.level)){
@@ -223,7 +223,7 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
       if(class(object) == 'lm'){
         points(x = object$coefficients[param], y = cl, pch = 16, cex = 2, col = col)
       }else{
-        points(x = bootcurve.out$t0[param], y = cl, pch = 16, cex = 2, col = col)
+        points(x = object$t0[param], y = cl, pch = 16, cex = 2, col = col)
       }
     }
   }
