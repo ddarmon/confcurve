@@ -172,7 +172,7 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
     if(is.null(xlab)) xlab = names(object$coefficients)[param]
   }else{
     confcurve.out = confcurve(bc = object, conf.level = cs, param = param)
-    ci = confcurve(bc = bootcurve.out, conf.level = conf.level, param = param)
+    ci = confcurve(bc = object, conf.level = conf.level, param = param)
 
     if (length(conf.level) == 1){
       ci = confcurve(object = object, conf.level = conf.level, param = param)
