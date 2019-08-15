@@ -1,3 +1,5 @@
+# f
+
 #' @export
 bootcurve = function(data, statistic, B = 2000, formula = NULL){
   if (length(B) > 1){
