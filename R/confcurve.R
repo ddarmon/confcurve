@@ -134,7 +134,6 @@ confpvalue = function(bc, theta, param = 1){
 
 #' @export
 confcurve = function(bc, conf.level, param){
-  #
   alpha = (1 - conf.level)/2
   zalpha.l = qnorm(alpha)
   zalpha.r = -zalpha.l
