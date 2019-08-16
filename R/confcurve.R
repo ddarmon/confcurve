@@ -147,8 +147,14 @@ confcurve = function(bc, conf.level, param){
   Ps.l = pnorm(z0 + zadj.l/(1 - a*zalpha.l))
   Ps.r = pnorm(z0 + zadj.r/(1 - a*zalpha.r))
 
-  cc.l = quantile(x = bc$t[, param], probs = Ps.l)
-  cc.u = quantile(x = bc$t[, param], probs = Ps.r)
+  num.na = sum(is.na(bc$t[, param]))
+
+  if(num.na > 0){
+    cat(sprintf("\n\nWarning: %g NAs present in the bootstrapped estimates. If %g is large relative to B = %g, this may indicate that bootstrapping will not work for this data set.\n\n", num.na, nrow(bc$t)))
+  }
+
+  cc.l = quantile(x = bc$t[, param], probs = Ps.l, na.rm = TRUE)
+  cc.u = quantile(x = bc$t[, param], probs = Ps.r, na.rm = TRUE)
 
   return(list(cc.l = cc.l, cc.u = cc.u, conf.level = conf.level))
 }
