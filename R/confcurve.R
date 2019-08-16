@@ -24,7 +24,12 @@ bootcurve = function(data, statistic, B = 2000, formula = NULL){
   z0 = rep(0, p)
 
   for (i in 1:p){
-    z0[i] = qnorm(sum(boot.out$t[, i] <= boot.out$t0[i])/(B))
+    # Handle possible NAs:
+
+    comp = boot.out$t[, i] <= boot.out$t0[i]
+    B.wo.na = sum(!is.na(comp))
+
+    z0[i] = qnorm(sum(comp, na.rm = TRUE)/(B.wo.na))
   }
 
   n = nrow(data)
@@ -133,7 +138,7 @@ confpvalue = function(bc, theta, param = 1){
 }
 
 #' @export
-confcurve = function(bc, conf.level, param){
+confcurve = function(bc, conf.level, param, warn.na = TRUE){
   alpha = (1 - conf.level)/2
   zalpha.l = qnorm(alpha)
   zalpha.r = -zalpha.l
@@ -150,7 +155,7 @@ confcurve = function(bc, conf.level, param){
   num.na = sum(is.na(bc$t[, param]))
 
   if(num.na > 0){
-    cat(sprintf("\n\nWarning: %g NAs present in the bootstrapped estimates. If %g is large relative to B = %g, this may indicate that bootstrapping will not work for this data set.\n\n", num.na, nrow(bc$t)))
+    if (warn.na) cat(sprintf("\n\nWarning: %g NAs present in the bootstrapped estimates. If %g is large relative to B = %g, this may indicate that bootstrapping will not work for this data set.\n\n", num.na, num.na, nrow(bc$t)))
   }
 
   cc.l = quantile(x = bc$t[, param], probs = Ps.l, na.rm = TRUE)
@@ -178,17 +183,16 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
     if(is.null(xlab)) xlab = names(object$coefficients)[param]
   }else{
     confcurve.out = confcurve(bc = object, conf.level = cs, param = param)
-    ci = confcurve(bc = object, conf.level = conf.level, param = param)
 
     if (length(conf.level) == 1){
-      ci = confcurve(bc = object, conf.level = conf.level, param = param)
+      ci = confcurve(bc = object, conf.level = conf.level, param = param, warn.na = FALSE)
     }else{
       ci = list()
 
       for (cl.ind in 1:length(conf.level)){
         cl = conf.level[cl.ind]
 
-        ci[[cl.ind]] = confcurve(bc = object, conf.level = cl, param = param)
+        ci[[cl.ind]] = confcurve(bc = object, conf.level = cl, param = param, warn.na = FALSE)
       }
     }
 
