@@ -106,35 +106,48 @@ confdens = function(bc, param){
 }
 
 #' @export
-confpvalue = function(bc, theta, param = 1){
-
-  # A modification that prevents NAN P-values:
-
-  n.leq = sum(bc$t[, param] <= theta)
-
-  if (n.leq == 0){
-    cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is smaller than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
-
-    Gn = 1/(length(bc$t[, param]) + 1)
-
-    return(2*min(Gn, 1 - Gn))
-  }else if (n.leq == length(bc$t[, param])){
-    cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is larger than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
-
-    Gn = 1/(length(bc$t[, param]) + 1)
-
-    return(2*min(Gn, 1 - Gn))
-  }else{
-    # The standard definition:
-    Gn = bc$Gn[[param]]
-    Phi.invs = qnorm(Gn(theta))
-
-    # The BCa confidence distribution
-    Hn = pnorm((Phi.invs - bc$z0[param])/(1 + bc$a[param]*(Phi.invs - bc$z0[param])) - bc$z0[param])
-
-    return(2*min(Hn, 1 - Hn))
+confpvalue = function(object, theta, param = 1){
+  if(class(object) == 'lm'){
+    lm.info = summary(object)
+    
+    df = lm.info$df[2]
+    
+    b = lm.info$coefficients[param, 1]
+    se.b = lm.info$coefficients[param, 2]
+    
+    t.obs = (b - theta)/se.b
+    
+    P = 2*pt(-abs(t.obs), df)
+    
+    return(P)
+  } else{
+    # A modification that prevents NAN P-values:
+    
+    n.leq = sum(object$t[, param] <= theta)
+    
+    if (n.leq == 0){
+      cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is smaller than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
+      
+      Gn = 1/(length(object$t[, param]) + 1)
+      
+      return(2*min(Gn, 1 - Gn))
+    }else if (n.leq == length(object$t[, param])){
+      cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is larger than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
+      
+      Gn = 1/(length(object$t[, param]) + 1)
+      
+      return(2*min(Gn, 1 - Gn))
+    }else{
+      # The standard definition:
+      Gn = object$Gn[[param]]
+      Phi.invs = qnorm(Gn(theta))
+      
+      # The BCa confidence distribution
+      Hn = pnorm((Phi.invs - object$z0[param])/(1 + object$a[param]*(Phi.invs - object$z0[param])) - object$z0[param])
+      
+      return(2*min(Hn, 1 - Hn))
+    }
   }
-
 }
 
 #' @export
