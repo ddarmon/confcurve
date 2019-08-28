@@ -271,7 +271,7 @@ confcurve.lm = function(object, conf.level, param){
 }
 
 #' @export
-plot.lm.coef = function(object, conf.level = 0.95){
+plot.lm.coef = function(object, conf.level = 0.95, cex = 1){
 lm.summary = summary(object)
 alpha = 1 - conf.level
 
@@ -284,7 +284,7 @@ ucb = b + pm
 
 effects.df = data.frame(coef.name = rownames(lm.summary$coefficients), point.estimate = lm.summary$coefficients[, 1], lcb = lcb, ucb = ucb)
 
-gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df) %>%
+gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
   gf_vline(xintercept = ~ 0, lty = 2) %>%
   gf_labs(x = "Coefficient Value", y = "Regressor Name")
 }
