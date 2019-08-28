@@ -269,3 +269,22 @@ confcurve.lm = function(object, conf.level, param){
 
   return(list(cc.l = cc.l, cc.u = cc.u, conf.level = conf.level))
 }
+
+#' @export
+plot.lm.coef = function(object, conf.level = 0.95){
+lm.summary = summary(object)
+alpha = 1 - conf.level
+
+b = lm.summary$coefficients[, 1]
+
+pm = qt(alpha/2, lm.summary$df[2], lower.tail = FALSE)*lm.summary$coefficients[, 2]
+
+lcb = b - pm
+ucb = b + pm
+
+effects.df = data.frame(coef.name = rownames(lm.summary$coefficients), point.estimate = lm.summary$coefficients[, 1], lcb = lcb, ucb = ucb)
+
+gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df) %>%
+  gf_vline(xintercept = ~ 0, lty = 2) %>%
+  gf_labs(x = "Coefficient Value", y = "Regressor Name")
+}
