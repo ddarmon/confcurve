@@ -1,10 +1,7 @@
 library(confcurve)
 
-# n1 = 15
-# n2 = 15
-
-n1 = 100
-n2 = 100
+n1 = 15
+n2 = 15
 
 theta1 = 0.5
 theta2 = 0.5
@@ -34,6 +31,7 @@ show(odds3)
 ns = c(n1, n2)
 ys = c(y1, y2)
 
+par(mfrow = c(1, 2))
 cc.out = confcurve.or(ys, ns, or.upper = 20, plot = TRUE)
 
 cc.out$ci
