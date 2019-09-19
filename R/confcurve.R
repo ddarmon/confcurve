@@ -290,7 +290,7 @@ gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = 
 }
 
 #' @export
-conf.curve.or = function(ys, ns, conf.level = 0.95, or.upper = NA, plot = FALSE){
+confcurve.or = function(ys, ns, conf.level = 0.95, or.upper = NA, plot = FALSE){
   y1 = ys[1]; y2 = ys[2]
   n1 = ns[1]; n2 = ns[2]
 

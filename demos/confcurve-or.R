@@ -34,7 +34,7 @@ show(odds3)
 ns = c(n1, n2)
 ys = c(y1, y2)
 
-cc.out = conf.curve.or(ys, ns, or.upper = 10, plot = TRUE)
+cc.out = confcurve.or(ys, ns, or.upper = 10, plot = TRUE)
 
 cc.out$ci
 cc.out$or.median.est
