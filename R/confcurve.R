@@ -67,6 +67,17 @@ bootcurve = function(data, statistic, B = 2000, formula = NULL){
 }
 
 #' @export
+bootcurve.lm = function(formula, data, B = 2000){
+  statistic = function(formula, data, indices){
+    d = data[indices, ]
+    
+    return(coefficients(lm(formula, data = d)))
+  }
+  
+  return(bootcurve(data, statistic, B = B, formula = formula))
+}
+
+#' @export
 confdist = function(bc, theta, param){
   Gn = bc$Gn[[param]]
   Phi.invs = qnorm(Gn(theta))
