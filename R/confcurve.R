@@ -351,9 +351,9 @@ confcurve.or = function(ys, ns, conf.level = 0.95, or.upper = NA, plot = FALSE){
     plot(psis, cc, type = 'l'); segments(x0 = c(lr), x1 = c(rr), y0 = c(0.95), y1 = c(0.95), lwd = 2, col = 'blue')
     abline(v = or.median.est, lty = 3, col = 'black')
 
-    plot(psis, H, type = 'l')
-    abline(v = lr); abline(h = ad2)
-    abline(v = rr); abline(h = 1-ad2)
+#     plot(psis, H, type = 'l')
+#     abline(v = lr); abline(h = ad2)
+#     abline(v = rr); abline(h = 1-ad2)
   }
 
   return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
