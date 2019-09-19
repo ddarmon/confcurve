@@ -348,7 +348,7 @@ confcurve.or = function(ys, ns, conf.level = 0.95, or.upper = NA, plot = FALSE){
   rr = uniroot(function(x) H.fun(x) - (1-ad2), interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
 
   if (plot){
-    plot(psis, cc, type = 'l'); segments(x0 = c(lr), x1 = c(rr), y0 = c(0.95), y1 = c(0.95), lwd = 2, col = 'blue')
+    plot(psis, cc, type = 'l'); segments(x0 = c(lr), x1 = c(rr), y0 = c(0.95), y1 = c(0.95), lwd = 2, col = 'blue', xlab = expression("Odds Ratio" ~ rho), ylab = expression(cc(rho)))
     abline(v = or.median.est, lty = 3, col = 'black')
     abline(v = 1)
 
