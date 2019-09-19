@@ -7,6 +7,7 @@ Maintainer: David Darmon <ddarmon@monmouth.edu>
 Description: 
 Depends:
     boot (>= 1.3.0)
+	MCMCpack (>= 1.4.0)
 License: GNU
 Encoding: UTF-8
 LazyData: true

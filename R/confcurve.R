@@ -109,42 +109,42 @@ confdens = function(bc, param){
 confpvalue = function(object, theta, param = 1){
   if(class(object) == 'lm'){
     lm.info = summary(object)
-    
+
     df = lm.info$df[2]
-    
+
     b = lm.info$coefficients[param, 1]
     se.b = lm.info$coefficients[param, 2]
-    
+
     t.obs = (b - theta)/se.b
-    
+
     P = 2*pt(-abs(t.obs), df)
-    
+
     return(P)
   } else{
     # A modification that prevents NAN P-values:
-    
+
     n.leq = sum(object$t[, param] <= theta)
-    
+
     if (n.leq == 0){
       cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is smaller than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
-      
+
       Gn = 1/(length(object$t[, param]) + 1)
-      
+
       return(2*min(Gn, 1 - Gn))
     }else if (n.leq == length(object$t[, param])){
       cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is larger than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
-      
+
       Gn = 1/(length(object$t[, param]) + 1)
-      
+
       return(2*min(Gn, 1 - Gn))
     }else{
       # The standard definition:
       Gn = object$Gn[[param]]
       Phi.invs = qnorm(Gn(theta))
-      
+
       # The BCa confidence distribution
       Hn = pnorm((Phi.invs - object$z0[param])/(1 + object$a[param]*(Phi.invs - object$z0[param])) - object$z0[param])
-      
+
       return(2*min(Hn, 1 - Hn))
     }
   }
@@ -287,4 +287,74 @@ effects.df = data.frame(coef.name = rownames(lm.summary$coefficients), point.est
 gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
   gf_vline(xintercept = ~ 0, lty = 2) %>%
   gf_labs(x = "Coefficient Value", y = "Regressor Name")
+}
+
+#' @export
+conf.curve.or = function(ys, ns, conf.level = 0.95, or.upper = NA, plot = FALSE){
+  y1 = ys[1]; y2 = ys[2]
+  n1 = ns[1]; n2 = ns[2]
+
+  m1 = y1 + y2
+
+  if (is.na(or.upper)){
+    or.upper = 30
+  }
+
+
+  psis = seq(0.01, or.upper, by = 0.01)
+
+  H = rep(0, length(psis))
+
+  for (psi.ind in 1:length(psis)){
+    psi = psis[psi.ind]
+    p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = psi)
+
+    sum.inds = which(p.i[, 1] > y2)
+
+    p.i = p.i[, 2]
+
+    H[psi.ind] = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
+  }
+
+  H.fun = approxfun(psis, H)
+
+  first.pos.ind = which(H - 0.5 > 0)[1]
+
+  or.median.est = uniroot(function(x) H.fun(x) - 0.5, interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
+
+  cc = abs(1 - 2*H)
+
+  # Find confidence interval using confidence curve:
+  # neg.inds = which(cc - conf.level < 0)
+  # first.neg.ind = neg.inds[1]
+  # last.neg.ind = tail(neg.inds, 1)
+  #
+  #   cc.fun = approxfun(psis, cc)
+  #
+  #   lr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(psis[first.neg.ind - 1], psis[first.neg.ind]))$root
+  #   rr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(psis[last.neg.ind], psis[last.neg.ind + 1]))$root
+
+  # Find confidence interval using confidence distribution
+
+  alpha = 1 - conf.level
+  ad2 = alpha/2
+
+  first.pos.ind = which(H - ad2 > 0)[1]
+
+  lr = uniroot(function(x) H.fun(x) - ad2, interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
+
+  first.pos.ind = which(H - (1-ad2) > 0)[1]
+
+  rr = uniroot(function(x) H.fun(x) - (1-ad2), interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
+
+  if (plot){
+    plot(psis, cc, type = 'l'); segments(x0 = c(lr), x1 = c(rr), y0 = c(0.95), y1 = c(0.95), lwd = 2, col = 'blue')
+    abline(v = or.median.est, lty = 3, col = 'black')
+
+    plot(psis, H, type = 'l')
+    abline(v = lr); abline(h = ad2)
+    abline(v = rr); abline(h = 1-ad2)
+  }
+
+  return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
 }
