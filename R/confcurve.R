@@ -70,10 +70,10 @@ bootcurve = function(data, statistic, B = 2000, formula = NULL){
 bootcurve.lm = function(formula, data, B = 2000){
   statistic = function(formula, data, indices){
     d = data[indices, ]
-    
+
     return(coefficients(lm(formula, data = d)))
   }
-  
+
   return(bootcurve(data, statistic, B = B, formula = formula))
 }
 
@@ -283,21 +283,41 @@ confcurve.lm = function(object, conf.level, param){
 
 #' @export
 plot.lm.coef = function(object, conf.level = 0.95, cex = 1){
-lm.summary = summary(object)
-alpha = 1 - conf.level
+  if(class(object) == 'lm'){
+    lm.summary = summary(object)
+    alpha = 1 - conf.level
 
-b = lm.summary$coefficients[, 1]
+    b = lm.summary$coefficients[, 1]
 
-pm = qt(alpha/2, lm.summary$df[2], lower.tail = FALSE)*lm.summary$coefficients[, 2]
+    pm = qt(alpha/2, lm.summary$df[2], lower.tail = FALSE)*lm.summary$coefficients[, 2]
 
-lcb = b - pm
-ucb = b + pm
+    lcb = b - pm
+    ucb = b + pm
 
-effects.df = data.frame(coef.name = rownames(lm.summary$coefficients), point.estimate = lm.summary$coefficients[, 1], lcb = lcb, ucb = ucb)
+    effects.df = data.frame(coef.name = rownames(lm.summary$coefficients), point.estimate = lm.summary$coefficients[, 1], lcb = lcb, ucb = ucb)
 
-gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
-  gf_vline(xintercept = ~ 0, lty = 2) %>%
-  gf_labs(x = "Coefficient Value", y = "Regressor Name")
+    gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
+      gf_vline(xintercept = ~ 0, lty = 2) %>%
+      gf_labs(x = "Coefficient Value", y = "Regressor Name")
+  }else{
+    point.est = object$t0
+
+    lcb = rep(0, length(point.est))
+    ucb = rep(0, length(point.est))
+
+    for (param in 1:length(point.est)){
+      ci.obj = confcurve(object, conf.level = conf.level, param = param)
+
+      lcb[param] = ci.obj$cc.l
+      ucb[param] = ci.obj$cc.u
+    }
+
+    effects.df = data.frame(coef.name = names(point.est), point.estimate = point.est, lcb = lcb, ucb = ucb)
+
+    gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
+      gf_vline(xintercept = ~ 0, lty = 2) %>%
+      gf_labs(x = "Coefficient Value", y = "Regressor Name")
+  }
 }
 
 #' @export
