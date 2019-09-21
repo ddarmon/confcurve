@@ -321,72 +321,100 @@ plot.lm.coef = function(object, conf.level = 0.95, cex = 1){
 }
 
 #' @export
-confcurve.or = function(ys, ns, conf.level = 0.95, or.upper = NA, plot = FALSE){
+confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim = NULL){
+  ## See page 236 of *Confidence, Likelihood, Probability* 
+  ## for the form of the confidence distribution
+  ## for the odds ratio.
+  
   y1 = ys[1]; y2 = ys[2]
   n1 = ns[1]; n2 = ns[2]
-
+  
+  p1 = y1/n1
+  p2 = y2/n2
+  
+  or = (p2*(1-p1))/(p1*(1-p2))
+  
+  # Let rho be the odds ratio, and
+  #     psi be the log-odds ratio:
+  #
+  # psi = log(rho)
+  
+  log.or = log(or)
+  
+  kappa.s = 1/y1 + 1/(n1 - y1) + 1/y2 + 1/(n2 - y2)
+  
   m1 = y1 + y2
-
-  if (is.na(or.upper)){
-    or.upper = 30
-  }
-
-
-  psis = seq(0.01, or.upper, by = 0.01)
-
-  H = rep(0, length(psis))
-
-  for (psi.ind in 1:length(psis)){
-    psi = psis[psi.ind]
-    p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = psi)
-
+  
+  # Use normal approximation to determine a
+  # reasonable upper-bound for the odds ratio
+  # rho:
+  
+  log.or.upper = qnorm(0.999, mean = log.or, sd = sqrt(kappa.s))
+  
+  or.upper = exp(log.or.upper)
+  
+  rhos = seq(0.01, or.upper, length.out = n)
+  
+  H = rep(0, length(rhos))
+  
+  for (rho.ind in 1:length(rhos)){
+    rho = rhos[rho.ind]
+    p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = rho)
+    
     sum.inds = which(p.i[, 1] > y2)
-
+    
     p.i = p.i[, 2]
-
-    H[psi.ind] = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
+    
+    H[rho.ind] = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
   }
-
-  H.fun = approxfun(psis, H)
-
+  
+  H.fun = approxfun(rhos, H)
+  
   first.pos.ind = which(H - 0.5 > 0)[1]
-
-  or.median.est = uniroot(function(x) H.fun(x) - 0.5, interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
-
+  
+  or.median.est = uniroot(function(x) H.fun(x) - 0.5, interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
+  
   cc = abs(1 - 2*H)
-
+  
+  H.norm = pnorm(log(rhos), mean = log.or, sd = sqrt(kappa.s))
+  
+  cc.norm = abs(1 - 2*H.norm)
+  
   # Find confidence interval using confidence curve:
   # neg.inds = which(cc - conf.level < 0)
   # first.neg.ind = neg.inds[1]
   # last.neg.ind = tail(neg.inds, 1)
   #
-  #   cc.fun = approxfun(psis, cc)
+  #   cc.fun = approxfun(rhos, cc)
   #
-  #   lr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(psis[first.neg.ind - 1], psis[first.neg.ind]))$root
-  #   rr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(psis[last.neg.ind], psis[last.neg.ind + 1]))$root
-
+  #   lr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(rhos[first.neg.ind - 1], rhos[first.neg.ind]))$root
+  #   rr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(rhos[last.neg.ind], rhos[last.neg.ind + 1]))$root
+  
   # Find confidence interval using confidence distribution
-
+  
   alpha = 1 - conf.level
   ad2 = alpha/2
-
+  
   first.pos.ind = which(H - ad2 > 0)[1]
-
-  lr = uniroot(function(x) H.fun(x) - ad2, interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
-
+  
+  lr = uniroot(function(x) H.fun(x) - ad2, interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
+  
   first.pos.ind = which(H - (1-ad2) > 0)[1]
-
-  rr = uniroot(function(x) H.fun(x) - (1-ad2), interval = c(psis[first.pos.ind - 1], psis[first.pos.ind]))$root
-
+  
+  rr = uniroot(function(x) H.fun(x) - (1-ad2), interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
+  
   if (plot){
-    plot(psis, cc, type = 'l'); segments(x0 = c(lr), x1 = c(rr), y0 = c(0.95), y1 = c(0.95), lwd = 2, col = 'blue', xlab = expression("Odds Ratio" ~ rho), ylab = expression(cc(rho)))
+    if(is.null(xlim)){
+      xlim = c(0, or.upper)
+    }
+    
+    plot(rhos, cc, type = 'l', xlim = xlim, xlab = expression('Odds Ratio' ~ rho), ylab = expression(cc(rho))); segments(x0 = c(lr), x1 = c(rr), y0 = c(conf.level), y1 = c(conf.level), lwd = 2, col = 'blue', xlab = expression("Odds Ratio" ~ rho), ylab = expression(cc(rho)))
+    
+    lines(rhos, cc.norm, col = 'red')
     abline(v = or.median.est, lty = 3, col = 'black')
     abline(v = 1)
-
-#     plot(psis, H, type = 'l')
-#     abline(v = lr); abline(h = ad2)
-#     abline(v = rr); abline(h = 1-ad2)
+    legend('bottomright', legend = c('Exact CC', 'Normal Approx. CC', sprintf('%g%% CI', conf.level*100)), col = c('black', 'red', 'blue'), lty = 1, lwd = c(1, 1, 2))
   }
-
+  
   return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
 }
