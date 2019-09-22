@@ -372,40 +372,18 @@ confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim
     H[rho.ind] = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
   }
 
-  H.fun = approxfun(rhos, H)
-
-  first.pos.ind = which(H - 0.5 > 0)[1]
-
-  or.median.est = uniroot(function(x) H.fun(x) - 0.5, interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
-
   cc = abs(1 - 2*H)
 
   H.norm = pnorm(log(rhos), mean = log.or, sd = sqrt(kappa.s))
 
   cc.norm = abs(1 - 2*H.norm)
 
-  # Find confidence interval using confidence curve:
-  # neg.inds = which(cc - conf.level < 0)
-  # first.neg.ind = neg.inds[1]
-  # last.neg.ind = tail(neg.inds, 1)
-  #
-  #   cc.fun = approxfun(rhos, cc)
-  #
-  #   lr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(rhos[first.neg.ind - 1], rhos[first.neg.ind]))$root
-  #   rr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(rhos[last.neg.ind], rhos[last.neg.ind + 1]))$root
+  ci.out = ci.or(ys, ns, conf.level)
 
-  # Find confidence interval using confidence distribution
+  lr = ci.out$ci[1]
+  rr = ci.out$ci[2]
 
-  alpha = 1 - conf.level
-  ad2 = alpha/2
-
-  first.pos.ind = which(H - ad2 > 0)[1]
-
-  lr = uniroot(function(x) H.fun(x) - ad2, interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
-
-  first.pos.ind = which(H - (1-ad2) > 0)[1]
-
-  rr = uniroot(function(x) H.fun(x) - (1-ad2), interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
+  or.median.est = ci.out$or.median.est
 
   if (plot){
     if(is.null(xlim)){
@@ -421,4 +399,78 @@ confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim
   }
 
   return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
+}
+
+#' @export
+ci.or = function(ys, ns, conf.level = 0.95){
+  ## See page 236 of *Confidence, Likelihood, Probability*
+  ## for the form of the confidence distribution
+  ## for the odds ratio.
+
+  y1 = ys[1]; y2 = ys[2]
+  n1 = ns[1]; n2 = ns[2]
+
+  p1 = y1/n1
+  p2 = y2/n2
+
+  or = (p2*(1-p1))/(p1*(1-p2))
+
+  # Let rho be the odds ratio, and
+  #     psi be the log-odds ratio:
+  #
+  # psi = log(rho)
+
+  log.or = log(or)
+
+  kappa.s = 1/y1 + 1/(n1 - y1) + 1/y2 + 1/(n2 - y2)
+
+  m1 = y1 + y2
+
+  # Use normal approximation to determine a
+  # reasonable upper-bound for the odds ratio
+  # rho:
+
+  log.or.upper = qnorm(0.999, mean = log.or, sd = sqrt(kappa.s))
+
+  or.upper = exp(log.or.upper)
+
+  Hfun = function(rho){
+    p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = rho)
+
+    sum.inds = which(p.i[, 1] > y2)
+
+    p.i = p.i[, 2]
+
+    H = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
+
+    return(H)
+  }
+
+  # Values for finding lower confidence bound,
+  # median, and upper confidence bound using
+  # Brent's root finding method:
+
+  alpha = 1-conf.level
+  ad2 = alpha/2
+
+  lower.probs = c(0.001, 0.25, 0.75)
+  upper.probs = c(0.5, 0.75, 0.999)
+
+  zero.vals = c(ad2, 0.5, 1-ad2)
+
+  interval.vals = rep(0, 3)
+
+  for (i in 1:3){
+    log.or.lb = qnorm(lower.probs[i], mean = log.or, sd = sqrt(kappa.s))
+    log.or.ub = qnorm(upper.probs[i], mean = log.or, sd = sqrt(kappa.s))
+
+    or.lb = exp(log.or.lb)
+    or.ub = exp(log.or.ub)
+
+    root.out = brentDekker(fun = function(x) Hfun(x) - zero.vals[i], a = or.lb, b = or.ub)$root
+
+    interval.vals[i] = root.out
+  }
+
+  return(list(ci = c(interval.vals[1], interval.vals[3]), or.median.est = interval.vals[2]))
 }
