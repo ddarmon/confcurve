@@ -189,18 +189,20 @@ confcurve = function(bc, conf.level, param, warn.na = TRUE){
 }
 
 #' @export
-plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level = 0.95, param = 1, col = 'black', xlim = NULL, xlab = NULL, add = FALSE){
+plot.confcurve = function(object, param = 1, cs = seq(0.001, 0.999, by = 0.001), col = 'black', conf.level = NULL, xlim = NULL, xlab = NULL, add = FALSE){
   if(class(object) == 'lm'){
     confcurve.out = confcurve.lm(object = object, conf.level = cs, param = param)
 
-    if (length(conf.level) == 1){
-      ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
-    }else{
-      ci = list()
+    if (!is.null(conf.level)){
+      if (length(conf.level) == 1){
+        ci = confcurve.lm(object = object, conf.level = conf.level, param = param)
+      }else{
+        ci = list()
 
-      for (cl.ind in 1:length(conf.level)){
-        cl = conf.level[cl.ind]
-        ci[[cl.ind]] = confcurve.lm(object = object, conf.level = cl, param = param)
+        for (cl.ind in 1:length(conf.level)){
+          cl = conf.level[cl.ind]
+          ci[[cl.ind]] = confcurve.lm(object = object, conf.level = cl, param = param)
+        }
       }
     }
 
@@ -208,15 +210,17 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
   }else{
     confcurve.out = confcurve(bc = object, conf.level = cs, param = param)
 
-    if (length(conf.level) == 1){
-      ci = confcurve(bc = object, conf.level = conf.level, param = param, warn.na = FALSE)
-    }else{
-      ci = list()
+    if (!is.null(conf.level)){
+      if (length(conf.level) == 1){
+        ci = confcurve(bc = object, conf.level = conf.level, param = param, warn.na = FALSE)
+      }else{
+        ci = list()
 
-      for (cl.ind in 1:length(conf.level)){
-        cl = conf.level[cl.ind]
+        for (cl.ind in 1:length(conf.level)){
+          cl = conf.level[cl.ind]
 
-        ci[[cl.ind]] = confcurve(bc = object, conf.level = cl, param = param, warn.na = FALSE)
+          ci[[cl.ind]] = confcurve(bc = object, conf.level = cl, param = param, warn.na = FALSE)
+        }
       }
     }
 
@@ -239,30 +243,30 @@ plot.confcurve = function(object, cs = seq(0.001, 0.999, by = 0.001), conf.level
 
   lines(confcurve.out$cc.u, confcurve.out$conf.level, type = 'l', col = col)
 
-  if (length(conf.level) == 1){
-    segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2, col = col)
-
-    if(class(object) == 'lm'){
-      points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2, col = col)
-    }else{
-      points(x = object$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
-    }
-  }else{
-    for (cl.ind in 1:length(conf.level)){
-      cl = conf.level[cl.ind]
-      ci.cur = ci[[cl.ind]]
-
-      segments(x0 = ci.cur$cc.l, x1 = ci.cur$cc.u, y0 = cl, lwd = 2, col = col)
+  if (!is.null(conf.level)){
+    if (length(conf.level) == 1){
+      segments(x0 = ci$cc.l, x1 = ci$cc.u, y0 = conf.level, lwd = 2, col = col)
 
       if(class(object) == 'lm'){
-        points(x = object$coefficients[param], y = cl, pch = 16, cex = 2, col = col)
+        points(x = object$coefficients[param], y = conf.level, pch = 16, cex = 2, col = col)
       }else{
-        points(x = object$t0[param], y = cl, pch = 16, cex = 2, col = col)
+        points(x = object$t0[param], y = conf.level, pch = 16, cex = 2, col = col)
+      }
+    }else{
+      for (cl.ind in 1:length(conf.level)){
+        cl = conf.level[cl.ind]
+        ci.cur = ci[[cl.ind]]
+
+        segments(x0 = ci.cur$cc.l, x1 = ci.cur$cc.u, y0 = cl, lwd = 2, col = col)
+
+        if(class(object) == 'lm'){
+          points(x = object$coefficients[param], y = cl, pch = 16, cex = 2, col = col)
+        }else{
+          points(x = object$t0[param], y = cl, pch = 16, cex = 2, col = col)
+        }
       }
     }
   }
-
-  # return(list(confcurve = confcurve.out, ci = ci))
 }
 
 #' @export
@@ -322,64 +326,64 @@ plot.lm.coef = function(object, conf.level = 0.95, cex = 1){
 
 #' @export
 confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim = NULL){
-  ## See page 236 of *Confidence, Likelihood, Probability* 
+  ## See page 236 of *Confidence, Likelihood, Probability*
   ## for the form of the confidence distribution
   ## for the odds ratio.
-  
+
   y1 = ys[1]; y2 = ys[2]
   n1 = ns[1]; n2 = ns[2]
-  
+
   p1 = y1/n1
   p2 = y2/n2
-  
+
   or = (p2*(1-p1))/(p1*(1-p2))
-  
+
   # Let rho be the odds ratio, and
   #     psi be the log-odds ratio:
   #
   # psi = log(rho)
-  
+
   log.or = log(or)
-  
+
   kappa.s = 1/y1 + 1/(n1 - y1) + 1/y2 + 1/(n2 - y2)
-  
+
   m1 = y1 + y2
-  
+
   # Use normal approximation to determine a
   # reasonable upper-bound for the odds ratio
   # rho:
-  
+
   log.or.upper = qnorm(0.999, mean = log.or, sd = sqrt(kappa.s))
-  
+
   or.upper = exp(log.or.upper)
-  
+
   rhos = seq(0.01, or.upper, length.out = n)
-  
+
   H = rep(0, length(rhos))
-  
+
   for (rho.ind in 1:length(rhos)){
     rho = rhos[rho.ind]
     p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = rho)
-    
+
     sum.inds = which(p.i[, 1] > y2)
-    
+
     p.i = p.i[, 2]
-    
+
     H[rho.ind] = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
   }
-  
+
   H.fun = approxfun(rhos, H)
-  
+
   first.pos.ind = which(H - 0.5 > 0)[1]
-  
+
   or.median.est = uniroot(function(x) H.fun(x) - 0.5, interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
-  
+
   cc = abs(1 - 2*H)
-  
+
   H.norm = pnorm(log(rhos), mean = log.or, sd = sqrt(kappa.s))
-  
+
   cc.norm = abs(1 - 2*H.norm)
-  
+
   # Find confidence interval using confidence curve:
   # neg.inds = which(cc - conf.level < 0)
   # first.neg.ind = neg.inds[1]
@@ -389,32 +393,32 @@ confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim
   #
   #   lr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(rhos[first.neg.ind - 1], rhos[first.neg.ind]))$root
   #   rr = uniroot(function(x) cc.fun(x) - conf.level, interval = c(rhos[last.neg.ind], rhos[last.neg.ind + 1]))$root
-  
+
   # Find confidence interval using confidence distribution
-  
+
   alpha = 1 - conf.level
   ad2 = alpha/2
-  
+
   first.pos.ind = which(H - ad2 > 0)[1]
-  
+
   lr = uniroot(function(x) H.fun(x) - ad2, interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
-  
+
   first.pos.ind = which(H - (1-ad2) > 0)[1]
-  
+
   rr = uniroot(function(x) H.fun(x) - (1-ad2), interval = c(rhos[first.pos.ind - 1], rhos[first.pos.ind]))$root
-  
+
   if (plot){
     if(is.null(xlim)){
       xlim = c(0, or.upper)
     }
-    
+
     plot(rhos, cc, type = 'l', xlim = xlim, xlab = expression('Odds Ratio' ~ rho), ylab = expression(cc(rho))); segments(x0 = c(lr), x1 = c(rr), y0 = c(conf.level), y1 = c(conf.level), lwd = 2, col = 'blue', xlab = expression("Odds Ratio" ~ rho), ylab = expression(cc(rho)))
-    
+
     lines(rhos, cc.norm, col = 'red')
     abline(v = or.median.est, lty = 3, col = 'black')
     abline(v = 1)
     legend('bottomright', legend = c('Exact CC', 'Normal Approx. CC', sprintf('%g%% CI', conf.level*100)), col = c('black', 'red', 'blue'), lty = 1, lwd = c(1, 1, 2))
   }
-  
+
   return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
 }
