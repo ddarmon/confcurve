@@ -426,6 +426,20 @@ ci.or = function(ys, ns, conf.level = 0.95){
 
   m1 = y1 + y2
 
+  # The confidence distribution:
+
+  Hfun = function(rho){
+    p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = rho)
+
+    sum.inds = which(p.i[, 1] > y2)
+
+    p.i = p.i[, 2]
+
+    H = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
+
+    return(H)
+  }
+
   # Values for finding lower confidence bound,
   # median, and upper confidence bound using
   # Brent's root finding method:
