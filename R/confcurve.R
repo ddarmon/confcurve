@@ -426,26 +426,6 @@ ci.or = function(ys, ns, conf.level = 0.95){
 
   m1 = y1 + y2
 
-  # Use normal approximation to determine a
-  # reasonable upper-bound for the odds ratio
-  # rho:
-
-  log.or.upper = qnorm(0.999, mean = log.or, sd = sqrt(kappa.s))
-
-  or.upper = exp(log.or.upper)
-
-  Hfun = function(rho){
-    p.i = dnoncenhypergeom(x = NA, n1 = n1, n2 = n2, m1 = m1, psi = rho)
-
-    sum.inds = which(p.i[, 1] > y2)
-
-    p.i = p.i[, 2]
-
-    H = sum(p.i[sum.inds]) + 0.5*p.i[sum.inds[1] - 1]
-
-    return(H)
-  }
-
   # Values for finding lower confidence bound,
   # median, and upper confidence bound using
   # Brent's root finding method:
@@ -456,7 +436,12 @@ ci.or = function(ys, ns, conf.level = 0.95){
   lower.probs = c(0.001, 0.25, 0.75)
   upper.probs = c(0.5, 0.75, 0.999)
 
+  # The desired values of H(rho) from
+  # the confidence distribution.
+
   zero.vals = c(ad2, 0.5, 1-ad2)
+
+  # The values of rho that solve H(rho) = c
 
   interval.vals = rep(0, 3)
 
