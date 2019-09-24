@@ -325,7 +325,7 @@ plot.lm.coef = function(object, conf.level = 0.95, cex = 1){
 }
 
 #' @export
-confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim = NULL){
+confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim = NULL, show.normal.approximation = FALSE){
   ## See page 236 of *Confidence, Likelihood, Probability*
   ## for the form of the confidence distribution
   ## for the odds ratio.
@@ -392,10 +392,17 @@ confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, plot = FALSE, xlim
 
     plot(rhos, cc, type = 'l', xlim = xlim, xlab = expression('Odds Ratio' ~ rho), ylab = expression(cc(rho))); segments(x0 = c(lr), x1 = c(rr), y0 = c(conf.level), y1 = c(conf.level), lwd = 2, col = 'blue', xlab = expression("Odds Ratio" ~ rho), ylab = expression(cc(rho)))
 
-    lines(rhos, cc.norm, col = 'red')
+    if (show.normal.approximation){
+      lines(rhos, cc.norm, col = 'red')
+    }
     abline(v = or.median.est, lty = 3, col = 'black')
     abline(v = 1)
-    legend('bottomright', legend = c('Exact CC', 'Normal Approx. CC', sprintf('%g%% CI', conf.level*100)), col = c('black', 'red', 'blue'), lty = 1, lwd = c(1, 1, 2))
+
+    if (show.normal.approximation){
+      legend('bottomright', legend = c('Exact CC', 'Normal Approx. CC', sprintf('%g%% CI', conf.level*100)), col = c('black', 'red', 'blue'), lty = 1, lwd = c(1, 1, 2))
+    }else{
+      legend('bottomright', legend = c('Exact CC', sprintf('%g%% CI', conf.level*100)), col = c('black', 'blue'), lty = 1, lwd = c(1, 2))
+    }
   }
 
   return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
