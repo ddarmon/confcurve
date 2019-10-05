@@ -514,8 +514,6 @@ confcurve.TukeyHSD = function(object, conf.level = 0.95, dc = 0.01, ncol = 3){
 
   cc.range = range(cc)
 
-  ncol = 3
-
   cex.use = 1
 
   par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
