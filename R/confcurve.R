@@ -516,7 +516,9 @@ confcurve.TukeyHSD = function(object, conf.level = 0.95, dc = 0.01, ncol = 3){
 
   ncol = 3
 
-  par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = 1.5, cex.axis = 1.5)
+  cex.use = 1
+
+  par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
   for (which.diff in 1:ndiffs){
     plot(cc[which.diff, , 2], cs, type = 'l', xlim = range(cc), xlab = rnames[which.diff], ylab = 'Confidence Curve')
     lines(cc[which.diff, , 3], cs)
