@@ -477,3 +477,52 @@ ci.or = function(ys, ns, conf.level = 0.95){
 
   return(list(ci = c(interval.vals[1], interval.vals[3]), or.median.est = interval.vals[2]))
 }
+
+#' @export
+confcurve.TukeyHSD = function(object, conf.level = 0.95, dc = 0.01, ncol = 3){
+  tukey.out = TukeyHSD(object, conf.level = 0.95)
+
+  which.diff = 1
+  ndiffs = nrow(tukey.out[[1]])
+
+  rnames = rownames(tukey.out[[1]])
+
+  dc = 0.01
+
+  cs = seq(0, 1-dc, by = dc)
+
+  conf.level = 0.95
+
+  cc = array(NA, dim = c(ndiffs, length(cs), 3))
+
+  cind.at.conf.level = conf.level / dc + 1
+
+  if((cind.at.conf.level - trunc(cind.at.conf.level)) != 0){
+    cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
+    cind.at.conf.level = NULL
+  }
+
+  for (c.ind in 1:length(cs)){
+    c = cs[c.ind]
+
+    tukey.out = TukeyHSD(object, conf.level = c)
+
+    for (which.diff in 1:ndiffs){
+      cc[which.diff, c.ind, ] = tukey.out$Site[which.diff, 1:3]
+    }
+  }
+
+  cc.range = range(cc)
+
+  ncol = 3
+
+  par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = 1.5, cex.axis = 1.5)
+  for (which.diff in 1:ndiffs){
+    plot(cc[which.diff, , 2], cs, type = 'l', xlim = range(cc), xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    lines(cc[which.diff, , 3], cs)
+    abline(v = cc[which.diff, 1, 1])
+    abline(v = 0, lty = 2)
+    if(!is.null(cind.at.conf.level))
+      segments(x0 = cc[which.diff, cind.at.conf.level, 2], x1 = cc[which.diff, cind.at.conf.level, 3], y0 = conf.level, lwd = 2)
+  }
+}
