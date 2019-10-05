@@ -6,8 +6,8 @@ output: html_notebook
 
 ```{r, message = FALSE}
 
-#library(devtools)
-#install_github('ddarmon/confcurve')
+# library(devtools)
+# install_github('ddarmon/confcurve')
 library(confcurve)
 
 aov.out = aov(breaks ~ tension, data = warpbreaks)
