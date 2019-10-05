@@ -479,15 +479,13 @@ ci.or = function(ys, ns, conf.level = 0.95){
 }
 
 #' @export
-confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.term = 1, dc = 0.01, ncol = 3){
+confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.term = 1, xlim = NULL, dc = 0.01, ncol = 3){
   tukey.out = TukeyHSD(object, ordered = ordered, conf.level = 0.95)
 
   which.diff = 1
   ndiffs = nrow(tukey.out[[which.term]])
 
   rnames = rownames(tukey.out[[which.term]])
-
-  dc = 0.01
 
   cs = seq(0, 1-dc, by = dc)
 
@@ -516,9 +514,13 @@ confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.
 
   cex.use = 1
 
+  if (is.null(xlim)){
+    xlim = cc.range
+  }
+
   par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
   for (which.diff in 1:ndiffs){
-    plot(cc[which.diff, , 2], cs, type = 'l', xlim = range(cc), xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    plot(cc[which.diff, , 2], cs, type = 'l', xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
     lines(cc[which.diff, , 3], cs)
     abline(v = cc[which.diff, 1, 1])
     abline(v = 0, lty = 2)
