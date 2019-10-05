@@ -1,0 +1,24 @@
+---
+title: Demonstration of Confidence Curves for Mean Differences from Tukey's Honest Significant Difference Confidence Intervals
+author: David Darmon
+output: html_notebook
+---
+
+```{r, message = FALSE}
+
+#library(devtools)
+#install_github('ddarmon/confcurve')
+library(confcurve)
+
+aov.out = aov(breaks ~ tension, data = warpbreaks)
+tukey.out = TukeyHSD(aov.out)
+show(tukey.out)
+
+aov.out = aov(breaks ~ tension*wool, data = warpbreaks)
+tukey.out = TukeyHSD(aov.out)
+show(tukey.out)
+
+confcurve.TukeyHSD(aov.out, which.term = 1)
+confcurve.TukeyHSD(aov.out, which.term = 3, ncol = 5)
+```
+

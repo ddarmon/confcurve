@@ -479,13 +479,13 @@ ci.or = function(ys, ns, conf.level = 0.95){
 }
 
 #' @export
-confcurve.TukeyHSD = function(object, conf.level = 0.95, dc = 0.01, ncol = 3){
-  tukey.out = TukeyHSD(object, conf.level = 0.95)
+confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.term = 1, dc = 0.01, ncol = 3){
+  tukey.out = TukeyHSD(object, ordered = ordered, conf.level = 0.95)
 
   which.diff = 1
-  ndiffs = nrow(tukey.out[[1]])
+  ndiffs = nrow(tukey.out[[which.term]])
 
-  rnames = rownames(tukey.out[[1]])
+  rnames = rownames(tukey.out[[which.term]])
 
   dc = 0.01
 
@@ -505,10 +505,10 @@ confcurve.TukeyHSD = function(object, conf.level = 0.95, dc = 0.01, ncol = 3){
   for (c.ind in 1:length(cs)){
     c = cs[c.ind]
 
-    tukey.out = TukeyHSD(object, conf.level = c)
+    tukey.out = TukeyHSD(object, ordered = ordered, conf.level = c)
 
     for (which.diff in 1:ndiffs){
-      cc[which.diff, c.ind, ] = tukey.out$Site[which.diff, 1:3]
+      cc[which.diff, c.ind, ] = tukey.out[[which.term]][which.diff, 1:3]
     }
   }
 
