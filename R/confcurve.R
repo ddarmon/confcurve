@@ -528,3 +528,54 @@ confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.
       segments(x0 = cc[which.diff, cind.at.conf.level, 2], x1 = cc[which.diff, cind.at.conf.level, 3], y0 = conf.level, lwd = 2)
   }
 }
+
+#' @export
+confcurve.ScheffeTest = function(object, ordered = FALSE, conf.level = 0.95, which.term = 1, xlim = NULL, dc = 0.01, ncol = 3){
+  scheffe.out = ScheffeTest(object, ordered = ordered, conf.level = 0.95)
+
+  which.diff = 1
+  ndiffs = nrow(scheffe.out[[which.term]])
+
+  rnames = rownames(scheffe.out[[which.term]])
+
+  cs = seq(0, 1-dc, by = dc)
+
+  conf.level = 0.95
+
+  cc = array(NA, dim = c(ndiffs, length(cs), 3))
+
+  cind.at.conf.level = conf.level / dc + 1
+
+  if((cind.at.conf.level - trunc(cind.at.conf.level)) != 0){
+    cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
+    cind.at.conf.level = NULL
+  }
+
+  for (c.ind in 1:length(cs)){
+    c = cs[c.ind]
+
+    scheffe.out = ScheffeTest(object, ordered = ordered, conf.level = c)
+
+    for (which.diff in 1:ndiffs){
+      cc[which.diff, c.ind, ] = scheffe.out[[which.term]][which.diff, 1:3]
+    }
+  }
+
+  cc.range = range(cc)
+
+  cex.use = 1
+
+  if (is.null(xlim)){
+    xlim = cc.range
+  }
+
+  par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
+  for (which.diff in 1:ndiffs){
+    plot(cc[which.diff, , 2], cs, type = 'l', xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    lines(cc[which.diff, , 3], cs)
+    abline(v = cc[which.diff, 1, 1])
+    abline(v = 0, lty = 2)
+    if(!is.null(cind.at.conf.level))
+      segments(x0 = cc[which.diff, cind.at.conf.level, 2], x1 = cc[which.diff, cind.at.conf.level, 3], y0 = conf.level, lwd = 2)
+  }
+}
