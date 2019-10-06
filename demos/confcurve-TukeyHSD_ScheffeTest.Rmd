@@ -18,7 +18,13 @@ aov.out = aov(breaks ~ tension*wool, data = warpbreaks)
 tukey.out = TukeyHSD(aov.out)
 show(tukey.out)
 
-confcurve.TukeyHSD(aov.out, which.term = 1)
-confcurve.TukeyHSD(aov.out, which.term = 3, ncol = 5)
+xlim = c(-40, 40)
+
+confcurve.TukeyHSD(aov.out, which.term = 1, xlim = xlim)
+confcurve.TukeyHSD(aov.out, which.term = 3, ncol = 5, xlim = xlim)
+
+confcurve.ScheffeTest(aov.out, which.term = 1, xlim = xlim)
+confcurve.ScheffeTest(aov.out, which.term = 3, ncol = 5, xlim = xlim)
+
 ```
 

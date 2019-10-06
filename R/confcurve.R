@@ -530,8 +530,8 @@ confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.
 }
 
 #' @export
-confcurve.ScheffeTest = function(object, ordered = FALSE, conf.level = 0.95, which.term = 1, xlim = NULL, dc = 0.01, ncol = 3){
-  scheffe.out = ScheffeTest(object, ordered = ordered, conf.level = 0.95)
+confcurve.ScheffeTest = function(object, conf.level = 0.95, which.term = 1, xlim = NULL, dc = 0.01, ncol = 3){
+  scheffe.out = ScheffeTest(object, conf.level = 0.95)
 
   which.diff = 1
   ndiffs = nrow(scheffe.out[[which.term]])
@@ -554,7 +554,7 @@ confcurve.ScheffeTest = function(object, ordered = FALSE, conf.level = 0.95, whi
   for (c.ind in 1:length(cs)){
     c = cs[c.ind]
 
-    scheffe.out = ScheffeTest(object, ordered = ordered, conf.level = c)
+    scheffe.out = ScheffeTest(object, conf.level = c)
 
     for (which.diff in 1:ndiffs){
       cc[which.diff, c.ind, ] = scheffe.out[[which.term]][which.diff, 1:3]
