@@ -656,9 +656,9 @@ games.howell <- function(grp, obs, conf.level = 0.95) {
 }
 
 #' @export
-confcurve.GamesHowell = function(formula, data, conf.level = 0.95, xlim = NULL, dc = 0.01, ncol = 3){
-  y = data[[as.character(terms(formula)[[2]])]]
-  x = data[[as.character(terms(formula)[[3]])]]
+confcurve.GamesHowell = function(y, x, conf.level = 0.95, xlim = NULL, dc = 0.01, ncol = 3){
+  # y = data[[as.character(terms(formula)[[2]])]]
+  # x = data[[as.character(terms(formula)[[3]])]]
 
   gh.out = games.howell(x, y, conf.level = 0.95)
 

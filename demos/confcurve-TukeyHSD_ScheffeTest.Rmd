@@ -35,9 +35,6 @@ data(warpbreaks)
 
 formula = breaks ~ tension
 
-confcurve.GamesHowell(formula, data = warpbreaks, xlim = c(-40, 40))
-confcurve.TukeyHSD(aov.out, xlim = c(-40, 40))
-
 y = data[[as.character(terms(formula)[[2]])]]
 x = data[[as.character(terms(formula)[[3]])]]
 
