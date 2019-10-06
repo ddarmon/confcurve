@@ -31,20 +31,19 @@ confcurve.ScheffeTest(aov.out, which.term = 3, ncol = 5, xlim = xlim)
 ```{r}
 
 library(userfriendlyscience)
-# breaks ~ tension, data = warpbreaks
 data(warpbreaks)
 
-data = warpbreaks
-
 formula = breaks ~ tension
+
+confcurve.GamesHowell(formula, data = warpbreaks, xlim = c(-40, 40))
+confcurve.TukeyHSD(aov.out, xlim = c(-40, 40))
 
 y = data[[as.character(terms(formula)[[2]])]]
 x = data[[as.character(terms(formula)[[3]])]]
 
-
-
-confcurve.GamesHowell(breaks ~ tension, data = warpbreaks, xlim = c(-40, 40))
-confcurve.TukeyHSD(aov.out, xlim = c(-40, 40))
+# Verify confidence interval:
+games.howell(x, y)
+oneway(y, x, posthoc = 'games-howell')
 
 ```
 
