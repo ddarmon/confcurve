@@ -579,3 +579,135 @@ confcurve.ScheffeTest = function(object, conf.level = 0.95, which.term = 1, xlim
       segments(x0 = cc[which.diff, cind.at.conf.level, 2], x1 = cc[which.diff, cind.at.conf.level, 3], y0 = conf.level, lwd = 2)
   }
 }
+
+#' @export
+games.howell <- function(grp, obs, conf.level = 0.95) {
+  # Code from:
+  #
+  #   https://rpubs.com/aaronsc32/games-howell-test
+  #
+  # with some modifications.
+
+  #Create combinations
+  combs <- combn(unique(grp), 2)
+
+  # Statistics that will be used throughout the calculations:
+  # n = sample size of each group
+  # groups = number of groups in data
+  # Mean = means of each group sample
+  # std = variance of each group sample
+  n <- tapply(obs, grp, length)
+  groups <- length(tapply(obs, grp, length))
+  Mean <- tapply(obs, grp, mean)
+  std <- tapply(obs, grp, var)
+
+  statistics <- lapply(1:ncol(combs), function(x) {
+
+    mean.diff <- Mean[combs[2,x]] - Mean[combs[1,x]]
+
+    #t-values
+    t <- abs(Mean[combs[1,x]] - Mean[combs[2,x]]) / sqrt((std[combs[1,x]] / n[combs[1,x]]) + (std[combs[2,x]] / n[combs[2,x]]))
+
+    # Degrees of Freedom
+    df <- (std[combs[1,x]] / n[combs[1,x]] + std[combs[2,x]] / n[combs[2,x]])^2 / # Numerator Degrees of Freedom
+      ((std[combs[1,x]] / n[combs[1,x]])^2 / (n[combs[1,x]] - 1) + # Part 1 of Denominator Degrees of Freedom
+         (std[combs[2,x]] / n[combs[2,x]])^2 / (n[combs[2,x]] - 1)) # Part 2 of Denominator Degrees of Freedom
+
+    #p-values
+    p <- ptukey(t * sqrt(2), groups, df, lower.tail = FALSE)
+
+    # Sigma standard error
+    se <- sqrt(0.5 * (std[combs[1,x]] / n[combs[1,x]] + std[combs[2,x]] / n[combs[2,x]]))
+
+    ### NOT 100% SURE ABOUT THESE CONFIDENCE INTERVALS
+
+    # Upper Confidence Limit
+    upper.conf <- lapply(1:ncol(combs), function(x) {
+      mean.diff + qtukey(p = (1-conf.level), nmeans = groups, df = df, lower.tail = FALSE) * se
+    })[[1]]
+
+    # Lower Confidence Limit
+    lower.conf <- lapply(1:ncol(combs), function(x) {
+      mean.diff - qtukey(p = (1-conf.level), nmeans = groups, df = df, lower.tail = FALSE) * se
+    })[[1]]
+
+    # Group Combinations
+    grp.comb <- paste0(combs[2,x], '-', combs[1,x])
+
+    # Collect all statistics into list
+    stats <- list(grp.comb, mean.diff, lower.conf, upper.conf, se, t, df, p)
+  })
+
+  # Unlist statistics collected earlier
+  stats.unlisted <- lapply(statistics, function(x) {
+    unlist(x)
+  })
+
+  # Create dataframe from flattened list
+  results <- data.frame(matrix(unlist(stats.unlisted), nrow = length(stats.unlisted), byrow=TRUE))
+
+  # Select columns set as factors that should be numeric and change with as.numeric
+  results[c(2, 3:ncol(results))] <- round(as.numeric(as.matrix(results[c(2, 3:ncol(results))])), digits = 3)
+
+  # Rename data frame columns
+  colnames(results) <- c('groups', 'Mean Difference', 'lower limit', 'upper limit', 'Standard Error', 't', 'df', 'p')
+
+  return(results)
+}
+
+#' @export
+confcurve.GamesHowell = function(formula, data, conf.level = 0.95, xlim = NULL, dc = 0.01, ncol = 3){
+  y = data[[as.character(terms(formula)[[2]])]]
+  x = data[[as.character(terms(formula)[[3]])]]
+
+  gh.out = games.howell(x, y, conf.level = 0.95)
+
+  rnames = gh.out[, 1]
+
+  which.diff = 1
+  ndiffs = nrow(gh.out)
+
+  cs = seq(0, 1-dc, by = dc)
+
+  conf.level = 0.95
+
+  cc = array(NA, dim = c(ndiffs, length(cs), 3))
+
+  cind.at.conf.level = conf.level / dc + 1
+
+  if((cind.at.conf.level - trunc(cind.at.conf.level)) != 0){
+    cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
+    cind.at.conf.level = NULL
+  }
+
+  for (c.ind in 1:length(cs)){
+    c = cs[c.ind]
+
+    gh.out = games.howell(x, y, conf.level = c)
+    gh.out = gh.out[, -1]
+    gh.out = as.matrix(gh.out)
+
+    for (which.diff in 1:ndiffs){
+      # browser()
+      cc[which.diff, c.ind, ] = gh.out[which.diff, 1:3]
+    }
+  }
+
+  cc.range = range(cc)
+
+  cex.use = 1
+
+  if (is.null(xlim)){
+    xlim = cc.range
+  }
+
+  par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
+  for (which.diff in 1:ndiffs){
+    plot(cc[which.diff, , 2], cs, type = 'l', xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    lines(cc[which.diff, , 3], cs)
+    abline(v = cc[which.diff, 1, 1])
+    abline(v = 0, lty = 2)
+    if(!is.null(cind.at.conf.level))
+      segments(x0 = cc[which.diff, cind.at.conf.level, 2], x1 = cc[which.diff, cind.at.conf.level, 3], y0 = conf.level, lwd = 2)
+  }
+}
