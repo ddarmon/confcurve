@@ -520,7 +520,7 @@ confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.
 
   par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
   for (which.diff in 1:ndiffs){
-    plot(cc[which.diff, , 2], cs, type = 'l', xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    plot(cc[which.diff, , 2], cs, xaxs = 'i', yaxs = 'i', type = 'l', xlim = xlim, ylim = c(0, 1), xlab = rnames[which.diff], ylab = 'Confidence Curve')
     lines(cc[which.diff, , 3], cs)
     abline(v = cc[which.diff, 1, 1])
     abline(v = 0, lty = 2)
@@ -571,7 +571,7 @@ confcurve.ScheffeTest = function(object, conf.level = 0.95, which.term = 1, xlim
 
   par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
   for (which.diff in 1:ndiffs){
-    plot(cc[which.diff, , 2], cs, type = 'l', xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    plot(cc[which.diff, , 2], cs, xaxs = 'i', yaxs = 'i', type = 'l', xlim = xlim, ylim = c(0, 1), xlab = rnames[which.diff], ylab = 'Confidence Curve')
     lines(cc[which.diff, , 3], cs)
     abline(v = cc[which.diff, 1, 1])
     abline(v = 0, lty = 2)
@@ -703,11 +703,115 @@ confcurve.GamesHowell = function(y, x, conf.level = 0.95, xlim = NULL, dc = 0.01
 
   par(mfrow = c(ceiling(ndiffs/ncol), ncol), mar=c(5,5,2,1), cex.lab = cex.use, cex.axis = cex.use)
   for (which.diff in 1:ndiffs){
-    plot(cc[which.diff, , 2], cs, type = 'l', xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
+    plot(cc[which.diff, , 2], cs, xaxs = 'i', yaxs = 'i', type = 'l', ylim = c(0, 1), xlim = xlim, xlab = rnames[which.diff], ylab = 'Confidence Curve')
     lines(cc[which.diff, , 3], cs)
     abline(v = cc[which.diff, 1, 1])
     abline(v = 0, lty = 2)
     if(!is.null(cind.at.conf.level))
       segments(x0 = cc[which.diff, cind.at.conf.level, 2], x1 = cc[which.diff, cind.at.conf.level, 3], y0 = conf.level, lwd = 2)
+  }
+}
+
+#' @export
+confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol = 3){
+  statistic = function(x, f){
+    facs = levels(x[, 2])
+
+    xbars = rep(0, length(facs))
+
+    for (fac.ind in 1:length(facs)){
+      fac = facs[fac.ind]
+      i1 <- which(x[, 2] == fac)
+      n1 <- length(i1)
+      xbar.1 <- sum(x[i1, 1] * f[i1])/sum(f[i1])
+
+      xbars[fac.ind] = xbar.1
+    }
+
+    return(xbars)
+  }
+
+  dafr = data.frame(y = y, x = x)
+
+  boot.out = boot(dafr, statistic = statistic, stype = 'f', strata = dafr[, 2], R = B)
+
+  facs = levels(dafr[, 2])
+
+  npairs = choose(length(facs), 2)
+
+  boot.out$d = matrix(NA, nrow = B, ncol = npairs)
+  boot.out$V = matrix(NA, nrow = B, ncol = npairs)
+  boot.out$d0 = rep(NA, npairs)
+
+  flat.index = 1
+
+  Hs = list()
+
+  for (i in 1:(length(facs)-1)){
+    for (j in (i+1):(length(facs))){
+      boot.out$d[, flat.index] = boot.out$t[, j] - boot.out$t[, i]
+
+      boot.out$d0[flat.index] = boot.out$t0[j] - boot.out$t0[i]
+
+      Hs[[flat.index]] = ecdf(boot.out$d[, flat.index])
+
+      boot.out$V[, flat.index] = abs(1 - 2*Hs[[flat.index]](boot.out$d[, flat.index]))
+
+      flat.index = flat.index + 1
+    }
+  }
+
+  K = apply(boot.out$V, 1, max)
+
+  Kdist = ecdf(K)
+
+  # Nominal coverage on horizontal axis
+  # Actual coverage on vertical axis
+  #
+  # plot(Kdist)
+
+  # Actual coverage on the horizontal axis
+  # Needed nominal coverage to attain that nominal
+  # coverage.
+  #
+  # cs = seq(0, 1, by = 0.01)
+  # plot(cs, quantile(K, cs))
+
+  # Kinv maps from actual coverage to
+  # nominal coverage:
+
+  Kinv = function(p, K) quantile(K, p)
+
+  rs = range(boot.out$d)
+
+  thetas = seq(rs[1], rs[2], by = (rs[2] - rs[1])/1000)
+
+  alpha = 1 - conf.level
+  ad2 = alpha/2
+
+  par(mfrow = c(ceiling(npairs/ncol), ncol))
+
+  flat.ind = 1
+
+  for (i in 1:(length(facs)-1)){
+    for (j in (i+1):(length(facs))){
+      # This doesn't work:
+      # ci = quantile(boot.out$d[, flat.ind], c(Kinv(ad2, K), Kinv(1-ad2, K)))
+      ci = quantile(boot.out$d[, flat.ind], c(1 - Kinv(1-ad2, K), Kinv(1-ad2, K)))
+
+      cc.nominal = abs(1 - 2*Hs[[flat.ind]](thetas))
+      cc.correct = Kdist(cc.nominal)
+
+      # plot(thetas, cc.nominal, type = 'l', xlim = c(-5, 5))
+      # lines(thetas, cc.correct)
+
+      plot(thetas, cc.correct, xaxs = 'i', yaxs = 'i', ylim = c(0, 1), xlim = xlim, type = 'l', ylab = 'Confidence Curve', xlab = paste0(facs[j], '-', facs[i]))
+      abline(v = 0, lty = 2)
+      abline(v = boot.out$d0[flat.ind])
+      segments(x0 = ci[1], x1 = ci[2], y0 = conf.level, lwd = 2)
+      # abline(h = conf.level, lwd = 2)
+
+      flat.ind = flat.ind + 1
+    }
   }
 }
