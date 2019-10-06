@@ -38,6 +38,9 @@ formula = breaks ~ tension
 y = data[[as.character(terms(formula)[[2]])]]
 x = data[[as.character(terms(formula)[[3]])]]
 
+confcurve.GamesHowell(y, x, xlim = c(-40, 40))
+confcurve.TukeyHSD(aov.out, xlim = c(-40, 40))
+
 # Verify confidence interval:
 games.howell(x, y)
 oneway(y, x, posthoc = 'games-howell')
