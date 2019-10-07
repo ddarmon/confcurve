@@ -793,16 +793,20 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
 
   flat.ind = 1
   
-  cis.for.output = matrix(NA, nrow = npairs, ncol = 3)
+  cis.for.output = matrix(NA, nrow = npairs, ncol = 4)
   cis.rnames = rep(NA, length(npairs))
 
   for (i in 1:(length(facs)-1)){
     for (j in (i+1):(length(facs))){
-      # This doesn't work:
-      # ci = quantile(boot.out$d[, flat.ind], c(Kinv(ad2, K), Kinv(1-ad2, K)))
+      # Compute the confidence interval at the adjusted (rather than
+      # nominal) coverage probability.
       ci = quantile(boot.out$d[, flat.ind], c(1 - Kinv(1-ad2, K), Kinv(1-ad2, K)))
       
-      cis.for.output[flat.ind, ] = c(boot.out$d0[flat.ind], ci)
+      # Compute the adjusted P-value.
+      H0 = Hs[[flat.ind]](0)
+      p.adj = 2*min(Kdist(H0), 1 - Kdist(H0))
+      
+      cis.for.output[flat.ind, ] = c(boot.out$d0[flat.ind], ci, p.adj)
 
       cc.nominal = abs(1 - 2*Hs[[flat.ind]](thetas))
       cc.correct = Kdist(cc.nominal)
@@ -825,7 +829,7 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
   }
   
   rownames(cis.for.output) = cis.rnames
-  colnames(cis.for.output) = c('diff', 'lwr.ci', 'upr.ci')
+  colnames(cis.for.output) = c('diff', 'lwr.ci', 'upr.ci', 'p.adj')
   
   return(list(cis = cis.for.output, conf.level = conf.level))
 }
