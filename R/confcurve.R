@@ -792,20 +792,29 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
   par(mfrow = c(ceiling(npairs/ncol), ncol))
 
   flat.ind = 1
+  
+  cis.for.output = matrix(NA, nrow = npairs, ncol = 3)
+  cis.rnames = rep(NA, length(npairs))
 
   for (i in 1:(length(facs)-1)){
     for (j in (i+1):(length(facs))){
       # This doesn't work:
       # ci = quantile(boot.out$d[, flat.ind], c(Kinv(ad2, K), Kinv(1-ad2, K)))
       ci = quantile(boot.out$d[, flat.ind], c(1 - Kinv(1-ad2, K), Kinv(1-ad2, K)))
+      
+      cis.for.output[flat.ind, ] = c(boot.out$d0[flat.ind], ci)
 
       cc.nominal = abs(1 - 2*Hs[[flat.ind]](thetas))
       cc.correct = Kdist(cc.nominal)
 
       # plot(thetas, cc.nominal, type = 'l', xlim = c(-5, 5))
       # lines(thetas, cc.correct)
-
-      plot(thetas, cc.correct, xaxs = 'i', yaxs = 'i', ylim = c(0, 1), xlim = xlim, type = 'l', ylab = 'Confidence Curve', xlab = paste0(facs[j], '-', facs[i]))
+      
+      rname = paste0(facs[j], '-', facs[i])
+      
+      cis.rnames[flat.ind] = rname
+      
+      plot(thetas, cc.correct, xaxs = 'i', yaxs = 'i', ylim = c(0, 1), xlim = xlim, type = 'l', ylab = 'Confidence Curve', xlab = rname)
       abline(v = 0, lty = 2)
       abline(v = boot.out$d0[flat.ind])
       segments(x0 = ci[1], x1 = ci[2], y0 = conf.level, lwd = 2)
@@ -814,4 +823,9 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
       flat.ind = flat.ind + 1
     }
   }
+  
+  rownames(cis.for.output) = cis.rnames
+  colnames(cis.for.output) = c('diff', 'lwr.ci', 'upr.ci')
+  
+  return(list(cis = cis.for.output, conf.level = conf.level))
 }
