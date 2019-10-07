@@ -793,7 +793,7 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
   par(mfrow = c(ceiling(npairs/ncol), ncol))
 
   flat.ind = 1
-  
+
   cis.for.output = matrix(NA, nrow = npairs, ncol = 4)
   cis.rnames = rep(NA, length(npairs))
 
@@ -802,39 +802,43 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
       # Compute the confidence interval at the adjusted (rather than
       # nominal) coverage probability.
       ci = quantile(boot.out$d[, flat.ind], c(1 - Kinv(1-ad2, K), Kinv(1-ad2, K)))
-      
+
       # Compute the nominal and adjusted confidence curve.
-      
+
       cc.nominal = abs(1 - 2*Hs[[flat.ind]](thetas))
       cc.correct = Kdist(cc.nominal)
-      
+
       # Compute the adjusted P-value by interpolating
       # the adjusted confidence curve.
-      
-      cc.fun = approxfun(thetas, cc.correct)
-      p.adj = 1 - cc.fun(0)
-      
+      # cc.fun = approxfun(thetas, cc.correct)
+      # p.adj = 1 - cc.fun(0)
+
+      # Compute the adjusted P-value directly, using
+      # the adjustment to the confidence curve.
+
+      p.adj = 1-Kdist(abs(1 - 2*Hs[[flat.ind]](0)))
+
       cis.for.output[flat.ind, ] = c(boot.out$d0[flat.ind], ci, p.adj)
 
       # plot(thetas, cc.nominal, type = 'l', xlim = c(-5, 5))
       # lines(thetas, cc.correct)
-      
+
       rname = paste0(facs[j], '-', facs[i])
-      
+
       cis.rnames[flat.ind] = rname
-      
+
       plot(thetas, cc.correct, xaxs = 'i', yaxs = 'i', ylim = c(0, 1), xlim = xlim, type = 'l', ylab = 'Confidence Curve', xlab = rname)
       abline(v = 0, lty = 2)
       abline(v = boot.out$d0[flat.ind])
       segments(x0 = ci[1], x1 = ci[2], y0 = conf.level, lwd = 2)
-      abline(h = 1 - p.adj)
+      # abline(h = 1 - p.adj)
 
       flat.ind = flat.ind + 1
     }
   }
-  
+
   rownames(cis.for.output) = cis.rnames
   colnames(cis.for.output) = c('diff', 'lwr.ci', 'upr.ci', 'p.adj')
-  
+
   return(list(cis = cis.for.output, conf.level = conf.level))
 }
