@@ -764,6 +764,7 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
   K = apply(boot.out$V, 1, max)
 
   Kdist = ecdf(K)
+  # Kdist maps from nominal coverage to actual coverage
 
   # Nominal coverage on horizontal axis
   # Actual coverage on vertical axis
@@ -802,14 +803,18 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
       # nominal) coverage probability.
       ci = quantile(boot.out$d[, flat.ind], c(1 - Kinv(1-ad2, K), Kinv(1-ad2, K)))
       
-      # Compute the adjusted P-value.
-      H0 = Hs[[flat.ind]](0)
-      p.adj = 2*min(Kdist(H0), 1 - Kdist(H0))
+      # Compute the nominal and adjusted confidence curve.
       
-      cis.for.output[flat.ind, ] = c(boot.out$d0[flat.ind], ci, p.adj)
-
       cc.nominal = abs(1 - 2*Hs[[flat.ind]](thetas))
       cc.correct = Kdist(cc.nominal)
+      
+      # Compute the adjusted P-value by interpolating
+      # the adjusted confidence curve.
+      
+      cc.fun = approxfun(thetas, cc.correct)
+      p.adj = 1 - cc.fun(0)
+      
+      cis.for.output[flat.ind, ] = c(boot.out$d0[flat.ind], ci, p.adj)
 
       # plot(thetas, cc.nominal, type = 'l', xlim = c(-5, 5))
       # lines(thetas, cc.correct)
@@ -822,7 +827,7 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
       abline(v = 0, lty = 2)
       abline(v = boot.out$d0[flat.ind])
       segments(x0 = ci[1], x1 = ci[2], y0 = conf.level, lwd = 2)
-      # abline(h = conf.level, lwd = 2)
+      abline(h = 1 - p.adj)
 
       flat.ind = flat.ind + 1
     }

@@ -48,8 +48,7 @@ oneway(y, x, posthoc = 'games-howell')
 ```
 
 ```{r, message = FALSE}
-# library(confcurve)
-source('/Users/daviddarmon/Documents/Reference/G/github/confcurve/R/confcurve.R')
+library(confcurve)
 
 formula = breaks ~ tension
 
