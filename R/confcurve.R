@@ -495,7 +495,7 @@ confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.
 
   cind.at.conf.level = conf.level / dc + 1
 
-  if((cind.at.conf.level - trunc(cind.at.conf.level)) != 0){
+  if((cind.at.conf.level - floor(cind.at.conf.level)) != 0){
     cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
     cind.at.conf.level = NULL
   }
@@ -546,7 +546,7 @@ confcurve.ScheffeTest = function(object, conf.level = 0.95, which.term = 1, xlim
 
   cind.at.conf.level = conf.level / dc + 1
 
-  if((cind.at.conf.level - trunc(cind.at.conf.level)) != 0){
+  if((cind.at.conf.level - floor(cind.at.conf.level)) != 0){
     cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
     cind.at.conf.level = NULL
   }
@@ -675,7 +675,7 @@ confcurve.GamesHowell = function(y, x, conf.level = 0.95, xlim = NULL, dc = 0.01
 
   cind.at.conf.level = conf.level / dc + 1
 
-  if((cind.at.conf.level - trunc(cind.at.conf.level)) != 0){
+  if((cind.at.conf.level - floor(cind.at.conf.level)) != 0){
     cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
     cind.at.conf.level = NULL
   }
