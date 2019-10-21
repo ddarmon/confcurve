@@ -1,4 +1,17 @@
-#' @export
+#' Generate bootstrap samples for computation of confidence curves and related inferential statistics.
+#' 
+#' A function to generate bootstrap samples for use with
+#' construction of confidence distributions, confidence curves,
+#' P-values, etc.
+#' 
+#' bootcurve also estimates the bias-adjustment and acceleration
+#' parameters for BCa bootstrap confidence interval.
+#' 
+#' @param data the data frame containing the original data set.
+#'
+#' @param statistic a function specifying the sample statistic to be computed, in the format expected by the boot package.
+#' @param B the number of bootstrap samples to generate.
+#' @param formula a formula, if needed by the statistic function
 bootcurve = function(data, statistic, B = 2000, formula = NULL){
   if (length(B) > 1){
     if (is.null(formula)){
