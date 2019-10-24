@@ -1,12 +1,12 @@
 #' Generate bootstrap samples for computation of confidence curves and related inferential statistics.
-#' 
+#'
 #' A function to generate bootstrap samples for use with
 #' construction of confidence distributions, confidence curves,
 #' P-values, etc.
-#' 
+#'
 #' bootcurve also estimates the bias-adjustment and acceleration
 #' parameters for BCa bootstrap confidence interval.
-#' 
+#'
 #' @param data the data frame containing the original data set.
 #'
 #' @param statistic a function specifying the sample statistic to be computed, in the format expected by the boot package.
@@ -299,41 +299,55 @@ confcurve.lm = function(object, conf.level, param){
 }
 
 #' @export
-plot.lm.coef = function(object, conf.level = 0.95, cex = 1){
+plot.lm.coef = function(object, conf.level = 0.95, intercept = TRUE, cex = 1){
   if(class(object) == 'lm'){
+    if (intercept){
+      params = 1:length(coef(object))
+    }else{
+      params = 2:length(coef(object))
+    }
+
     lm.summary = summary(object)
     alpha = 1 - conf.level
 
-    b = lm.summary$coefficients[, 1]
+    b = lm.summary$coefficients[params, 1]
 
-    pm = qt(alpha/2, lm.summary$df[2], lower.tail = FALSE)*lm.summary$coefficients[, 2]
+    pm = qt(alpha/2, lm.summary$df[2], lower.tail = FALSE)*lm.summary$coefficients[params, 2]
 
     lcb = b - pm
     ucb = b + pm
 
-    effects.df = data.frame(coef.name = rownames(lm.summary$coefficients), point.estimate = lm.summary$coefficients[, 1], lcb = lcb, ucb = ucb)
+    effects.df = data.frame(coef.name = rownames(lm.summary$coefficients)[params], point.estimate = lm.summary$coefficients[params, 1], lcb = lcb, ucb = ucb)
 
-    gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
+    gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex, shape = 1) %>%
       gf_vline(xintercept = ~ 0, lty = 2) %>%
       gf_labs(x = "Coefficient Value", y = "Regressor Name")
   }else{
-    point.est = object$t0
+    if(class(object) == 'lm'){
+      if (intercept){
+        params = 1:length(object$t0)
+      }else{
+        params = 2:length(object$t0)
+      }
 
-    lcb = rep(0, length(point.est))
-    ucb = rep(0, length(point.est))
+      point.est = object$t0[params]
 
-    for (param in 1:length(point.est)){
-      ci.obj = confcurve(object, conf.level = conf.level, param = param)
+      lcb = rep(0, length(point.est))
+      ucb = rep(0, length(point.est))
 
-      lcb[param] = ci.obj$cc.l
-      ucb[param] = ci.obj$cc.u
+      for (param in params){
+        ci.obj = confcurve(object, conf.level = conf.level, param = param)
+
+        lcb[param] = ci.obj$cc.l
+        ucb[param] = ci.obj$cc.u
+      }
+
+      effects.df = data.frame(coef.name = names(point.est)[params], point.estimate = point.est, lcb = lcb, ucb = ucb)
+
+      gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex, shape = 1) %>%
+        gf_vline(xintercept = ~ 0, lty = 2) %>%
+        gf_labs(x = "Coefficient Value", y = "Regressor Name")
     }
-
-    effects.df = data.frame(coef.name = names(point.est), point.estimate = point.est, lcb = lcb, ucb = ucb)
-
-    gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex) %>%
-      gf_vline(xintercept = ~ 0, lty = 2) %>%
-      gf_labs(x = "Coefficient Value", y = "Regressor Name")
   }
 }
 
