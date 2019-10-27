@@ -353,7 +353,6 @@ plot.lm.coef = function(object, conf.level = 0.95, intercept = TRUE, cex = 1){
       gf_vline(xintercept = ~ 0, lty = 2) %>%
       gf_labs(x = "Coefficient Value", y = "Regressor Name")
   }else{
-    if(class(object) == 'lm'){
       if (intercept){
         params = 1:length(object$t0)
       }else{
@@ -365,19 +364,19 @@ plot.lm.coef = function(object, conf.level = 0.95, intercept = TRUE, cex = 1){
       lcb = rep(0, length(point.est))
       ucb = rep(0, length(point.est))
 
-      for (param in params){
+      for (param.ind in 1:length(params)){
+        param = params[param.ind]
         ci.obj = confcurve(object, conf.level = conf.level, param = param)
 
-        lcb[param] = ci.obj$cc.l
-        ucb[param] = ci.obj$cc.u
+        lcb[param.ind] = ci.obj$cc.l
+        ucb[param.ind] = ci.obj$cc.u
       }
 
-      effects.df = data.frame(coef.name = names(point.est)[params], point.estimate = point.est, lcb = lcb, ucb = ucb)
+      effects.df = data.frame(coef.name = names(point.est), point.estimate = point.est, lcb = lcb, ucb = ucb)
 
       gf_pointrangeh(coef.name ~ point.estimate + lcb + ucb, data = effects.df, cex = cex, shape = 1) %>%
         gf_vline(xintercept = ~ 0, lty = 2) %>%
         gf_labs(x = "Coefficient Value", y = "Regressor Name")
-    }
   }
 }
 
