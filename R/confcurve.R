@@ -899,7 +899,7 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
   return(list(cis = cis.for.output, conf.level = conf.level))
 }
 
-plot.confsurface = function(object, which, cs = seq(0, 0.99, 0.02), include.brim = FALSE){
+plot.confsurface = function(object, which, null.point = NULL, cs = seq(0, 0.99, 0.02), include.brim = FALSE){
   if (include.brim){
     cs = c(cs, 1/(1 + 10^(-(2:10))))
   }
@@ -922,5 +922,11 @@ plot.confsurface = function(object, which, cs = seq(0, 0.99, 0.02), include.brim
     }
     b = coef(object)[which]
     points3d(b[1], b[2],0, col = 'blue')
+  }
+
+  if (!is.null(null.point)){
+    x = null.point[1]; y = null.point[2]
+    lines3d(rep(x, 2), rep(y, 2), c(0, 1), lwd = 2, col = 'red')
+    points3d(rep(x, 2), rep(y, 2), c(0, 1), col = 'red')
   }
 }
