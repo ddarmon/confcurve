@@ -898,3 +898,29 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
 
   return(list(cis = cis.for.output, conf.level = conf.level))
 }
+
+plot.confsurface = function(object, which, cs = seq(0, 0.99, 0.02), include.brim = FALSE){
+  if (include.brim){
+    cs = c(cs, 1/(1 + 10^(-(2:10))))
+  }
+
+  xy = confidenceEllipse(object, which = which, draw = FALSE, levels = cs)
+
+  for (n.ind in 1:length(names(xy))){
+    n = names(xy)[n.ind]
+
+    cur.ellipse = xy[[n]]
+
+    c = as.numeric(n)
+    c.cur = rep(c, nrow(cur.ellipse))
+
+    if (n.ind == 1){
+      plot3d(cur.ellipse[, 1], cur.ellipse[, 2], c.cur, size = 0.00001, col = 'blue', xlab = which[1], ylab = which[2], zlab = 'Confidence Level')
+      lines3d(cur.ellipse[, 1], cur.ellipse[, 2], c.cur, add = TRUE, col = 'blue')
+    }else{
+      lines3d(cur.ellipse[, 1], cur.ellipse[, 2], c.cur, add = TRUE, col = 'blue')
+    }
+    b = coef(object)[which]
+    points3d(b[1], b[2],0, col = 'blue')
+  }
+}
