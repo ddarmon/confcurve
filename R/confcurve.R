@@ -455,7 +455,7 @@ confcurve.or = function(ys, ns, conf.level = 0.95, n = 10000, xlim = NULL, plot.
     abline(v = 1)
 
     if (show.normal.approximation){
-      legend('bottomright', legend = c('Exact CC', 'Normal Approx. CC'), col = c('black', 'red'))
+      legend('bottomright', legend = c('Exact CC', 'Normal Approx. CC'), col = c('black', 'red'), lty = 1)
     }
 
   return(list(ci = cbind(lr, rr), or.median.est = or.median.est))
