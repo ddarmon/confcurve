@@ -769,7 +769,7 @@ confcurve.GamesHowell = function(y, x, conf.level = 0.95, xlim = NULL, dc = 0.01
 }
 
 #' @export
-confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol = 3){
+confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol = 3, plot = TRUE){
   statistic = function(x, f){
     facs = levels(x[, 2])
 
@@ -845,8 +845,8 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
 
   alpha = 1 - conf.level
   ad2 = alpha/2
-
-  par(mfrow = c(ceiling(npairs/ncol), ncol))
+  
+  if (plot) par(mfrow = c(ceiling(npairs/ncol), ncol))
 
   flat.ind = 1
 
@@ -882,12 +882,15 @@ confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol
       rname = paste0(facs[j], '-', facs[i])
 
       cis.rnames[flat.ind] = rname
-
-      plot(thetas, cc.correct, xaxs = 'i', yaxs = 'i', ylim = c(0, 1), xlim = xlim, type = 'l', ylab = 'Confidence Curve', xlab = rname)
-      abline(v = 0, lty = 2)
-      abline(v = boot.out$d0[flat.ind])
-      segments(x0 = ci[1], x1 = ci[2], y0 = conf.level, lwd = 2)
-      # abline(h = 1 - p.adj)
+  
+      if (plot){
+        plot(thetas, cc.correct, xaxs = 'i', yaxs = 'i', ylim = c(0, 1), xlim = xlim, type = 'l', ylab = 'Confidence Curve', xlab = rname)
+        abline(v = 0, lty = 2)
+        abline(v = boot.out$d0[flat.ind])
+        segments(x0 = ci[1], x1 = ci[2], y0 = conf.level, lwd = 2)
+        # abline(h = 1 - p.adj)
+      }
+      
 
       flat.ind = flat.ind + 1
     }
