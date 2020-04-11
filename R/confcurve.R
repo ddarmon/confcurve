@@ -160,7 +160,7 @@ confpvalue = function(object, theta, param = 1, alternative = c('two.sided', 'le
     n.leq = sum(object$t[, param] <= theta)
 
     if (n.leq == 0){
-      cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is smaller than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
+      warning('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is smaller than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
 
       Gn = 1/(length(object$t[, param]) + 1)
 
@@ -173,7 +173,7 @@ confpvalue = function(object, theta, param = 1, alternative = c('two.sided', 'le
       }
       return(P)
     }else if (n.leq == length(object$t[, param])){
-      cat('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is larger than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
+      warning('Warning: True bootstrap P-value likely smaller than reported P-value, since the null parameter value is larger than any of the bootstrap parameter estimates. Reporting Percentile Bootstrap-based P-value.\n')
 
       Gn = 1/(length(object$t[, param]) + 1)
 
@@ -222,7 +222,7 @@ confcurve = function(bc, conf.level, param, warn.na = TRUE){
   num.na = sum(is.na(bc$t[, param]))
 
   if(num.na > 0){
-    if (warn.na) cat(sprintf("\n\nWarning: %g NAs present in the bootstrapped estimates. If %g is large relative to B = %g, this may indicate that bootstrapping will not work for this data set.\n\n", num.na, num.na, nrow(bc$t)))
+    if (warn.na) warning(sprintf("\n\nWarning: %g NAs present in the bootstrapped estimates. If %g is large relative to B = %g, this may indicate that bootstrapping will not work for this data set.\n\n", num.na, num.na, nrow(bc$t)))
   }
 
   cc.l = quantile(x = bc$t[, param], probs = Ps.l, na.rm = TRUE)
@@ -552,7 +552,7 @@ confcurve.TukeyHSD = function(object, ordered = FALSE, conf.level = 0.95, which.
   cind.at.conf.level = conf.level / dc + 1
 
   if((cind.at.conf.level - as.integer(cind.at.conf.level)) != 0){
-    cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
+    warning(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
     cind.at.conf.level = NULL
   }
 
@@ -603,7 +603,7 @@ confcurve.ScheffeTest = function(object, conf.level = 0.95, which.term = 1, xlim
   cind.at.conf.level = conf.level / dc + 1
 
   if((cind.at.conf.level - as.integer(cind.at.conf.level)) != 0){
-    cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
+    warning(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
     cind.at.conf.level = NULL
   }
 
@@ -732,7 +732,7 @@ confcurve.GamesHowell = function(y, x, conf.level = 0.95, xlim = NULL, dc = 0.01
   cind.at.conf.level = conf.level / dc + 1
 
   if((cind.at.conf.level - as.integer(cind.at.conf.level)) != 0){
-    cat(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
+    warning(sprintf('WARNING: Asking for a confidence interval at a finer resolution than the confidence curve. Please choose dc so that conf.level / dc is an integer value.'))
     cind.at.conf.level = NULL
   }
 
