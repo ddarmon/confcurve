@@ -769,6 +769,8 @@ confcurve.GamesHowell = function(y, x, conf.level = 0.95, xlim = NULL, dc = 0.01
 }
 
 #' @export
+#' Following the method from *Balanced Simultaneous Confidence Sets* by Rudolf Beran, as described
+#' in Section 9.5 (page 280) of *Confidence, Likelihood, Probability* by Schweder and Hjort.
 confcurve.oneway = function(y, x, B = 2000, conf.level = 0.95, xlim = NULL, ncol = 3, plot = TRUE){
   statistic = function(x, f){
     facs = levels(x[, 2])
